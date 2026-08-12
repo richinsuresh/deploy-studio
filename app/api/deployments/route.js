@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const token = process.env.VERCEL_TOKEN;
+  const token = process.env.DEPLOY_API_TOKEN;
   const teamId = process.env.VERCEL_TEAM_ID;
 
   if (!token) {
     return NextResponse.json(
-      { error: "Server is missing VERCEL_TOKEN." },
+      { error: "Server is missing DEPLOY_API_TOKEN." },
       { status: 500 }
     );
   }

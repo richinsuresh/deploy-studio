@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 // This runs on the server only. The Vercel token never reaches the browser.
 export async function POST(req) {
   const passcode = process.env.APP_PASSCODE;
-  const token = process.env.VERCEL_TOKEN;
+  const token = process.env.DEPLOY_API_TOKEN;
   const teamId = process.env.VERCEL_TEAM_ID; // optional
 
   if (!token) {
     return NextResponse.json(
-      { error: "Server is missing VERCEL_TOKEN. Add it in Vercel project settings." },
+      { error: "Server is missing DEPLOY_API_TOKEN. Add it in Vercel project settings." },
       { status: 500 }
     );
   }

@@ -20,7 +20,9 @@ you've deployed through it.
 1. Go to https://vercel.com/new
 2. Select the `deploy-studio` repo you just created
 3. Before clicking Deploy, open **Environment Variables** and add:
-   - `VERCEL_TOKEN` → the token from step 1
+   - `DEPLOY_API_TOKEN` → the token from step 1 (don't use the name
+     `VERCEL_TOKEN` — Vercel reserves that name for its own system value
+     and won't let you type your own token into it)
    - `APP_PASSCODE` → any simple password you and your dad will remember
    - `VERCEL_TEAM_ID` → leave blank unless your Vercel account is a Team account
 4. Click **Deploy**
