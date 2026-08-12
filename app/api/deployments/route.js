@@ -29,10 +29,39 @@ export async function GET() {
       );
     }
 
-    const deployments = (data.deployments || []).map((d) => ({
+    const raw = data.deployments || [];
+
+    // Look up each project's short stable domain once (not per deployment)
+    const uniqueNames = [...new Set(raw.map((d) => d.name))];
+    const domainMap = {};
+    await Promise.all(
+      uniqueNames.map(async (name) => {
+        try {
+          const domainsUrl = new URL(
+            `https://api.vercel.com/v9/projects/${name}/domains`
+          );
+          if (teamId) domainsUrl.searchParams.set("teamId", teamId);
+          const dRes = await fetch(domainsUrl.toString(), {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (dRes.ok) {
+            const dData = await dRes.json();
+            const candidates = (dData.domains || [])
+              .map((d) => d.name)
+              .filter((n) => n.endsWith(".vercel.app"));
+            candidates.sort((a, b) => a.length - b.length);
+            if (candidates[0]) domainMap[name] = candidates[0];
+          }
+        } catch (e) {
+          // fall back to the deployment's own URL below
+        }
+      })
+    );
+
+    const deployments = raw.map((d) => ({
       id: d.uid,
       name: d.name,
-      url: `https://${d.url}`,
+      url: `https://${domainMap[d.name] || d.url}`,
       state: d.state,
       createdAt: d.createdAt || d.created,
     }));

@@ -93,8 +93,36 @@ export async function POST(req) {
       );
     }
 
+    // The deployment response gives a long, unique-per-push URL. Projects also
+    // get a short, stable domain (e.g. my-site.vercel.app) that stays the same
+    // across pushes — that's the one worth showing. Look it up, with a couple
+    // of short retries since it can take a moment to attach after creation.
+    let shortDomain = null;
+    for (let attempt = 0; attempt < 4 && !shortDomain; attempt++) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 1200));
+
+      const domainsUrl = new URL(
+        `https://api.vercel.com/v9/projects/${safeName}/domains`
+      );
+      if (teamId) domainsUrl.searchParams.set("teamId", teamId);
+
+      const domainsRes = await fetch(domainsUrl.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (domainsRes.ok) {
+        const domainsData = await domainsRes.json();
+        const candidates = (domainsData.domains || [])
+          .map((d) => d.name)
+          .filter((n) => n.endsWith(".vercel.app"));
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => a.length - b.length);
+          shortDomain = candidates[0];
+        }
+      }
+    }
+
     return NextResponse.json({
-      url: `https://${data.url}`,
+      url: `https://${shortDomain || data.url}`,
       name: safeName,
       id: data.id,
       createdAt: data.createdAt || Date.now(),
